@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: smart-farming-postgres
+    environment:
+      POSTGRES_DB: smart_farming
+      POSTGRES_USER: smart_user
+      POSTGRES_PASSWORD: smart_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
