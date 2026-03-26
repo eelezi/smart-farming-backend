@@ -15,16 +15,3 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-## Default API
-- `GET /api/health`
-- `POST /api/recommendations`
-
-## Example request
-```json
-{
-  "crop": "Tomato",
-  "symptoms": "Yellow spots on leaves",
-  "temperatureC": 23.5,
-  "humidityPercent": 68.0
-}
-```
