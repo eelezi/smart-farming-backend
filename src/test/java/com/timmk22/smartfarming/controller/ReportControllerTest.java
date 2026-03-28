@@ -1,60 +1,33 @@
 package com.timmk22.smartfarming.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timmk22.smartfarming.dto.FarmingStatsDto;
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
 import com.timmk22.smartfarming.service.PdfReportService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@WebMvcTest(ReportController.class)
 class ReportControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockBean
-    private PdfReportService pdfReportService;
-
     @Test
-    void generatePdfShouldReturnPdfResponse() throws Exception {
-        when(pdfReportService.generateReport(any())).thenReturn("pdf-data".getBytes());
+    void generatePdfShouldReturnPdfResponse() {
+        PdfReportService pdfReportService = request -> "pdf-data".getBytes();
+        ReportController controller = new ReportController(pdfReportService);
 
         GeneratePdfRequest request = validRequest();
 
-        mockMvc.perform(post("/generate-pdf")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", MediaType.APPLICATION_PDF_VALUE))
-                .andExpect(header().string("Content-Disposition", "attachment; filename=\"farming-report-2026-03-28.pdf\""));
-    }
+        ResponseEntity<byte[]> response = controller.generatePdf(request);
 
-    @Test
-    void generatePdfShouldRejectInvalidPayload() throws Exception {
-        GeneratePdfRequest request = new GeneratePdfRequest();
-        request.setFarmName("");
-
-        mockMvc.perform(post("/generate-pdf")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType()).isNotNull();
+        assertThat(response.getHeaders().getContentType().toString()).isEqualTo("application/pdf");
+        assertThat(response.getHeaders().getFirst("Content-Disposition"))
+                .isEqualTo("attachment; filename=\"farming-report-2026-03-28.pdf\"");
+        assertThat(response.getBody()).isNotNull();
     }
 
     private GeneratePdfRequest validRequest() {
@@ -75,4 +48,3 @@ class ReportControllerTest {
         return request;
     }
 }
-

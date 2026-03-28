@@ -65,3 +65,23 @@ curl -X POST http://localhost:8080/generate-pdf \
 mvn test
 ```
 
+## ERD model mapping
+Implemented JPA entities (under `src/main/java/com/timmk22/smartfarming/model`):
+
+- `User` (`users.user_id`)
+- `Crop` (`crop.crop_id`)
+- `SoilType` (`soil_type.soil_id`)
+- `PlantingInformation` (`planting_information.planting_id`)
+- `Recommendation` (`recommendation.recommendation_id`)
+- `Forecast` (`forecast.forecast_id`)
+
+Relationships from the ERD are mapped as:
+
+- `User (1) -> (N) PlantingInformation`
+- `Crop (1) -> (N) PlantingInformation`
+- `SoilType (1) -> (N) PlantingInformation`
+- `PlantingInformation (1) -> (N) Recommendation`
+- `Recommendation (1) -> (N) Forecast`
+
+Repository interfaces are available in `src/main/java/com/timmk22/smartfarming/repository`.
+
