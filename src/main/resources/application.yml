@@ -2,6 +2,10 @@ server:
   port: 8080
 
 spring:
+  docker:
+    compose:
+      enabled: ${DOCKER_COMPOSE_ENABLED:false}
+      file: docker-compose.yml
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/smart_farming}
     username: ${DB_USERNAME:smart_user}
