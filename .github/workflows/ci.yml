@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smart_farming
+          POSTGRES_USER: smart_user
+          POSTGRES_PASSWORD: smart_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw -B verify --no-transfer-progress
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/smart_farming
+          DB_USERNAME: smart_user
+          DB_PASSWORD: smart_pass
+          DOCKER_COMPOSE_ENABLED: 'false'
