@@ -1,5 +1,14 @@
 # Smart Farming Backend (Spring Boot + PostgreSQL)
 
+## Branching Strategy
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production-ready code. Protected – changes must go through a pull request from `dev`. |
+| `dev`  | Active development branch. All feature branches should be created from and merged back into `dev`. |
+
+Workflow: `feature/*` → `dev` → PR → `main`
+
 ## Requirements
 - Java 17+
 - Maven 3.9+
