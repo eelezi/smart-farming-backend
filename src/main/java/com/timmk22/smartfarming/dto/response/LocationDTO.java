@@ -1,12 +1,15 @@
 package com.timmk22.smartfarming.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class LocationDTO {
+    @JsonProperty("display_name")
     private String displayName;
     private String lat;
     private String lon;
 
 
-     public LocationDTO() {
+    public LocationDTO() {
         // default constructor for Jackson
     }
 
