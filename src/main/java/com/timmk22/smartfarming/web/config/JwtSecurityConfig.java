@@ -44,7 +44,9 @@ public class JwtSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/auth/register"
+                                "/api/auth/register",
+                                "/api/crops",
+                                "/api/soil-types"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
