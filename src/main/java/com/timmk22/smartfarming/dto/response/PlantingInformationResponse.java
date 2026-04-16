@@ -1,5 +1,7 @@
 package com.timmk22.smartfarming.dto.response;
 
+import com.timmk22.smartfarming.enumeration.CurrentStatus;
+import com.timmk22.smartfarming.enumeration.IrrigationType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,4 +23,12 @@ public class PlantingInformationResponse {
     private String cropName;
     private Long soilTypeId;
     private String soilTypeName;
+    private Double latitude;
+    private Double longitude;
+    private String locationName;
+    private IrrigationType irrigationType;
+    private CurrentStatus currentStatus;
+    private LocalDate expectedHarvestDate;
+    private String notes;
+
 }

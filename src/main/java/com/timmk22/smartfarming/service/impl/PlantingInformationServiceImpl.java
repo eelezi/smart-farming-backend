@@ -3,6 +3,7 @@ package com.timmk22.smartfarming.service.impl;
 import com.timmk22.smartfarming.dto.request.CreatePlantingInformationRequest;
 import com.timmk22.smartfarming.dto.request.UpdatePlantingInformationRequest;
 import com.timmk22.smartfarming.dto.response.PlantingInformationResponse;
+import com.timmk22.smartfarming.enumeration.CurrentStatus;
 import com.timmk22.smartfarming.model.Crop;
 import com.timmk22.smartfarming.model.PlantingInformation;
 import com.timmk22.smartfarming.model.SoilType;
@@ -28,9 +29,9 @@ public class PlantingInformationServiceImpl implements PlantingInformationServic
     private final SoilTypeRepository soilTypeRepository;
 
     public PlantingInformationServiceImpl(PlantingInformationRepository plantingInformationRepository,
-                                         UserRepository userRepository,
-                                         CropRepository cropRepository,
-                                         SoilTypeRepository soilTypeRepository) {
+                                          UserRepository userRepository,
+                                          CropRepository cropRepository,
+                                          SoilTypeRepository soilTypeRepository) {
         this.plantingInformationRepository = plantingInformationRepository;
         this.userRepository = userRepository;
         this.cropRepository = cropRepository;
@@ -64,7 +65,7 @@ public class PlantingInformationServiceImpl implements PlantingInformationServic
 
     @Override
     public PlantingInformationResponse createEntry(CreatePlantingInformationRequest request, Long userId) {
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
 
@@ -80,6 +81,15 @@ public class PlantingInformationServiceImpl implements PlantingInformationServic
         plantingInformation.setUser(user);
         plantingInformation.setCrop(crop);
         plantingInformation.setSoilType(soilType);
+        plantingInformation.setLatitude(request.getLatitude());
+        plantingInformation.setLongitude(request.getLongitude());
+        plantingInformation.setLocationName(request.getLocationName());
+        plantingInformation.setIrrigationType(request.getIrrigationType());
+        plantingInformation.setCurrentStatus(
+                request.getCurrentStatus() != null ? request.getCurrentStatus() : CurrentStatus.HEALTHY
+        );
+        plantingInformation.setExpectedHarvestDate(request.getExpectedHarvestDate());
+        plantingInformation.setNotes(request.getNotes());
 
         PlantingInformation savedEntry = plantingInformationRepository.save(plantingInformation);
         return convertToResponse(savedEntry);
@@ -104,6 +114,13 @@ public class PlantingInformationServiceImpl implements PlantingInformationServic
         entry.setPlantingDate(request.getPlantingDate());
         entry.setCrop(crop);
         entry.setSoilType(soilType);
+        entry.setLatitude(request.getLatitude());
+        entry.setLongitude(request.getLongitude());
+        entry.setLocationName(request.getLocationName());
+        entry.setIrrigationType(request.getIrrigationType());
+        entry.setCurrentStatus(request.getCurrentStatus());
+        entry.setExpectedHarvestDate(request.getExpectedHarvestDate());
+        entry.setNotes(request.getNotes());
 
         PlantingInformation updatedEntry = plantingInformationRepository.save(entry);
         return convertToResponse(updatedEntry);
@@ -131,6 +148,14 @@ public class PlantingInformationServiceImpl implements PlantingInformationServic
         response.setCropName(entity.getCrop().getName());
         response.setSoilTypeId(entity.getSoilType().getSoilId());
         response.setSoilTypeName(entity.getSoilType().getName());
+        response.setLatitude(entity.getLatitude());
+        response.setLongitude(entity.getLongitude());
+        response.setLocationName(entity.getLocationName());
+        response.setIrrigationType(entity.getIrrigationType());
+        response.setCurrentStatus(entity.getCurrentStatus());
+        response.setExpectedHarvestDate(entity.getExpectedHarvestDate());
+        response.setNotes(entity.getNotes());
+
         return response;
     }
 }
