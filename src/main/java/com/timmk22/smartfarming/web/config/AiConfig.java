@@ -57,4 +57,18 @@ public class AiConfig {
                 .required(List.of("status", "analysis"))
                 .build();
     }
+
+    @Bean
+    public Schema recommendationSchema() {
+        return Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(Map.of(
+                        "recommendationText", Schema.builder()
+                                .type(Type.Known.STRING)
+                                .description("The main text containing the crop recommendation/suggestions for irrigation, and general tips for the specific crop and what to do in case of unexpected weather/temperature change.")
+                                .build()
+                ))
+                .required(List.of("recommendationText"))
+                .build();
+    }
 }

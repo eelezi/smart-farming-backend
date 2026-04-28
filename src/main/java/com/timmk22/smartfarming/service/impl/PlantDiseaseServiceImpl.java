@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.types.Schema;
 import com.timmk22.smartfarming.dto.response.PlantDiseaseDiagnosisResponse;
 import com.timmk22.smartfarming.enumeration.PlantDiseaseDetectionStatus;
-import com.timmk22.smartfarming.service.PlantDiseaseAiService;
+import com.timmk22.smartfarming.service.PlantDiseaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
@@ -25,7 +25,7 @@ import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
-public class PlantDiseaseAiServiceImpl implements PlantDiseaseAiService {
+public class PlantDiseaseServiceImpl implements PlantDiseaseService {
 
     @Value("${app.ai.diagnosis-system-prompt}")
     private String diagnosisSystemPrompt;

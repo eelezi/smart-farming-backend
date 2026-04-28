@@ -30,6 +30,13 @@ app:
     diagnosis-system-prompt: >-
       You are an expert plant pathologist and botanist. Analyze the provided plant image,
       detect whether disease is present, and respond strictly with the requested JSON schema.
+    recommendation-system-prompt: >-
+      You are an expert in agriculture and an irrigation specialist. Based on the provided
+      planting information and weather forecast data, provide a comprehensive plan for how to water the crops,
+      general tips regarding the expected temperature, and how to react to expected rain or temperature changes.
+      If the weather forecast data is missing, then provide a general recommendation for the specified crop.
+      The default temperature measurement unit is Celsius. 
+      The output must strictly conform to the provided JSON schema.
 
 management:
   endpoints:

@@ -3,7 +3,7 @@ package com.timmk22.smartfarming.web;
 import com.timmk22.smartfarming.dto.response.IdNameResponse;
 import com.timmk22.smartfarming.dto.response.PlantDiseaseDiagnosisResponse;
 import com.timmk22.smartfarming.service.CropService;
-import com.timmk22.smartfarming.service.PlantDiseaseAiService;
+import com.timmk22.smartfarming.service.PlantDiseaseService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +17,11 @@ import java.util.List;
 public class CropController {
 
     private final CropService cropService;
-    private final PlantDiseaseAiService plantDiseaseAiService;
+    private final PlantDiseaseService plantDiseaseService;
 
-    public CropController(CropService cropService, PlantDiseaseAiService plantDiseaseAiService) {
+    public CropController(CropService cropService, PlantDiseaseService plantDiseaseService) {
         this.cropService = cropService;
-        this.plantDiseaseAiService = plantDiseaseAiService;
+        this.plantDiseaseService = plantDiseaseService;
     }
 
     @GetMapping
@@ -33,7 +33,7 @@ public class CropController {
     public ResponseEntity<?> diagnosePlant(
             @RequestPart("image") MultipartFile image) {
         try {
-            PlantDiseaseDiagnosisResponse response = plantDiseaseAiService.analyzeImage(image);
+            PlantDiseaseDiagnosisResponse response = plantDiseaseService.analyzeImage(image);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

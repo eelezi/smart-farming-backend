@@ -16,5 +16,5 @@ public interface WeatherService {
      * @throws IllegalArgumentException if coordinates are out of range
      * @throws RuntimeException         if the Open-Meteo API call fails
      */
-    WeatherResponse getWeather(BigDecimal latitude, BigDecimal longitude, String timezone);
+    WeatherResponse getWeather(BigDecimal latitude, BigDecimal longitude, String timezone, Long recommendation_id);
 }
