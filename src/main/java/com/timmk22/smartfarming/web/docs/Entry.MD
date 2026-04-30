@@ -1,247 +1,357 @@
-Planting Information API Documentation
-Base URL: /entries
+# Planting Information API Documentation
 
-All endpoints under this controller handle CRUD operations for planting information entries. Authentication is implemented using JWT (JSON Web Token) via a Bearer token passed in the Authorization header.
+Base URL: `/entries`
 
-Error Response Structure
-All business logic errors thrown as IllegalArgumentException are handled by the global exception handler and return the following structure:
+All endpoints under this controller handle creating, reading, updating, and deleting planting entries. Authentication is implemented using **JWT (JSON Web Token)** via a `Bearer` token passed in the `Authorization` header.
 
-Status: 400 Bad Request or 404 Not Found depending on the context.
+---
 
-json
+## Error Response Structure
+
+All business logic errors thrown as `IllegalArgumentException` are handled by the global exception handler and return the following structure with `400 Bad Request`:
+
+```json
 {
-"status": 400,
-"error": "Bad Request",
-"message": "<error message>",
-"path": "<request path>"
+  "status": 400,
+  "error": "Bad Request",
+  "message": "<error message>",
+  "path": "<request path>"
 }
-Unauthorized requests return 401 Unauthorized:
+```
 
-json
+JWT-related errors return `401 Unauthorized`:
+
+```json
 {
-"status": 401,
-"error": "Unauthorized",
-"message": "<error message>",
-"path": "<request path>"
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "<error message>",
+  "path": "<request path>"
 }
-Endpoints Overview
-Method	Endpoint	Description	Auth Required
-GET	/entries	Get all planting entries for the authenticated user	Yes
-GET	/entries/{id}	Get a specific planting entry by ID	Yes
-POST	/entries	Create a new planting entry	Yes
-PUT	/entries/{id}	Update an existing planting entry	Yes
-DELETE	/entries/{id}	Delete a planting entry	Yes
+```
 
+---
 
-GET /entries
-Retrieves all planting entries for the authenticated user.
+## Endpoints Overview
 
-Request
-Headers:
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/entries` | Get all entries for the authenticated user | Yes |
+| GET | `/entries/{id}` | Get a single entry by ID | Yes |
+| POST | `/entries` | Create a new planting entry | Yes |
+| PUT | `/entries/{id}` | Update an existing planting entry | Yes |
+| DELETE | `/entries/{id}` | Delete a planting entry | Yes |
 
-Code
+---
+
+## GET `/entries`
+
+Returns all planting entries belonging to the authenticated user.
+
+### Request
+
+**Headers:**
+```
 Authorization: Bearer <token>
-Response
-Status: 200 OK
+```
 
-json
+### Response
+
+**Status:** `200 OK`
+
+```json
 [
-{
-"plantingId": 1,
-"area": 2.5,
-"plantingDate": "2026-04-01",
-"userId": 1,
-"cropId": 10,
-"cropName": "Corn",
-"soilTypeId": 3,
-"soilTypeName": "Loamy",
-"latitude": 41.9383,
-"longitude": 21.5021,
-"locationName": "Dracevo",
-"irrigationType": "DRIP",
-"currentStatus": "HEALTHY",
-"expectedHarvestDate": "2026-09-15",
-"notes": "Planted early spring"
-}
+  {
+    "plantingId": 1,
+    "area": 2.5,
+    "plantingDate": "2024-03-15",
+    "userId": 1,
+    "cropId": 3,
+    "cropName": "Wheat",
+    "soilTypeId": 2,
+    "soilTypeName": "Loamy",
+    "latitude": 41.0082,
+    "longitude": 28.9784,
+    "locationName": "North Field",
+    "irrigationType": "DRIP",
+    "currentStatus": "HEALTHY",
+    "expectedHarvestDate": "2024-07-15",
+    "notes": "Fertilized on day 10"
+  }
 ]
-Error Responses
+```
 
-404 Not Found — User not found
+### Error Responses
 
-GET /entries/{id}
-Retrieves a specific planting entry by ID.
+**Status:** `400 Bad Request` — Authenticated user not found
 
-Request
-Headers:
-
-Code
-Authorization: Bearer <token>
-Path Parameter:
-
-id (Long) — Planting entry ID
-
-Response
-Status: 200 OK
-
-json
+```json
 {
-"plantingId": 1,
-"area": 2.5,
-"plantingDate": "2026-04-01",
-"userId": 1,
-"cropId": 10,
-"cropName": "Corn",
-"soilTypeId": 3,
-"soilTypeName": "Loamy",
-"latitude": 41.9383,
-"longitude": 21.5021,
-"locationName": "Dracevo",
-"irrigationType": "DRIP",
-"currentStatus": "HEALTHY",
-"expectedHarvestDate": "2026-09-15",
-"notes": "Planted early spring"
+  "status": 400,
+  "error": "Bad Request",
+  "message": "User not found with ID: 1",
+  "path": "/entries"
 }
-Error Responses
+```
 
-404 Not Found — Entry not found or user does not have permission
+**Status:** `401 Unauthorized` — Missing or invalid token
 
-POST /entries
-Creates a new planting entry.
+---
 
-Request
-Headers:
+## GET `/entries/{id}`
 
-Code
+Returns a single planting entry by its ID. The entry must belong to the authenticated user.
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | Long | The ID of the planting entry |
+
+### Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "plantingId": 1,
+  "area": 2.5,
+  "plantingDate": "2024-03-15",
+  "userId": 1,
+  "cropId": 3,
+  "cropName": "Wheat",
+  "soilTypeId": 2,
+  "soilTypeName": "Loamy",
+  "latitude": 41.0082,
+  "longitude": 28.9784,
+  "locationName": "North Field",
+  "irrigationType": "DRIP",
+  "currentStatus": "HEALTHY",
+  "expectedHarvestDate": "2024-07-15",
+  "notes": "Fertilized on day 10"
+}
+```
+
+### Error Responses
+
+**Status:** `400 Bad Request` — Entry not found or does not belong to the authenticated user
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Entry not found with ID: 1",
+  "path": "/entries/1"
+}
+```
+
+**Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+## POST `/entries`
+
+Creates a new planting entry for the authenticated user.
+
+### Request
+
+**Headers:**
+```
 Content-Type: application/json
 Authorization: Bearer <token>
-Body:
+```
 
-json
+**Body:**
+
+```json
 {
-"area": 2.5,
-"plantingDate": "2026-04-01",
-"cropId": 10,
-"soilTypeId": 3,
-"latitude": 41.9383,
-"longitude": 21.5021,
-"locationName": "Dracevo",
-"irrigationType": "DRIP",
-"currentStatus": "HEALTHY",
-"expectedHarvestDate": "2026-09-15",
-"notes": "Planted early spring"
+  "area": 2.5,
+  "plantingDate": "2024-03-15",
+  "cropId": 3,
+  "soilTypeId": 2,
+  "latitude": 41.0082,
+  "longitude": 28.9784,
+  "locationName": "North Field",
+  "irrigationType": "DRIP",
+  "currentStatus": "HEALTHY",
+  "expectedHarvestDate": "2024-07-15",
+  "notes": "Fertilized on day 10"
 }
-Field Validation:
+```
 
-Field	Type	Required	Constraints
-area	Double	Yes	Positive
-plantingDate	LocalDate	Yes	Valid date
-cropId	Long	Yes	Positive
-soilTypeId	Long	Yes	Positive
-latitude	Double	No	Between -90 and 90
-longitude	Double	No	Between -180 and 180
-locationName	String	No	Max 255 characters
-irrigationType	Enum	No	Valid irrigation type
-currentStatus	Enum	No	Defaults to HEALTHY
-expectedHarvestDate	LocalDate	No	Valid date
-notes	String	No	Max 1000 characters
+**Field Validation:**
 
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| area | Double | Yes | Must be positive |
+| plantingDate | LocalDate | Yes | Format: `YYYY-MM-DD` |
+| cropId | Long | Yes | Must be positive, must exist |
+| soilTypeId | Long | Yes | Must be positive, must exist |
+| latitude | Double | No | Between -90.0 and 90.0 |
+| longitude | Double | No | Between -180.0 and 180.0 |
+| locationName | String | No | Max 255 characters |
+| irrigationType | IrrigationType | No | Enum value |
+| currentStatus | CurrentStatus | No | Enum value — defaults to `HEALTHY` |
+| expectedHarvestDate | LocalDate | No | Format: `YYYY-MM-DD` |
+| notes | String | No | Max 1000 characters |
 
-Response
-Status: 201 Created
+### Response
 
-json
+**Status:** `201 Created`
+
+```json
 {
-"plantingId": 1,
-"area": 2.5,
-"plantingDate": "2026-04-01",
-"userId": 1,
-"cropId": 10,
-"cropName": "Corn",
-"soilTypeId": 3,
-"soilTypeName": "Loamy",
-"latitude": 41.9383,
-"longitude": 21.5021,
-"locationName": "Dracevo",
-"irrigationType": "DRIP",
-"currentStatus": "HEALTHY",
-"expectedHarvestDate": "2026-09-15",
-"notes": "Planted early spring"
+  "plantingId": 1,
+  "area": 2.5,
+  "plantingDate": "2024-03-15",
+  "userId": 1,
+  "cropId": 3,
+  "cropName": "Wheat",
+  "soilTypeId": 2,
+  "soilTypeName": "Loamy",
+  "latitude": 41.0082,
+  "longitude": 28.9784,
+  "locationName": "North Field",
+  "irrigationType": "DRIP",
+  "currentStatus": "HEALTHY",
+  "expectedHarvestDate": "2024-07-15",
+  "notes": "Fertilized on day 10"
 }
-Error Responses
+```
 
-400 Bad Request — Validation error or crop/soil type not found
+### Error Responses
 
-PUT /entries/{id}
-Updates an existing planting entry.
+**Status:** `400 Bad Request` — Crop or soil type not found
 
-Request
-Headers:
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Crop not found with ID: 3",
+  "path": "/entries"
+}
+```
 
-Code
+**Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+## PUT `/entries/{id}`
+
+Updates an existing planting entry. The entry must belong to the authenticated user.
+
+### Request
+
+**Headers:**
+```
 Content-Type: application/json
 Authorization: Bearer <token>
-Path Parameter:
+```
 
-id (Long) — Planting entry ID
+**Path Parameters:**
 
-Body:
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | Long | The ID of the planting entry to update |
 
-json
+**Body:**
+
+```json
 {
-"area": 3.0,
-"plantingDate": "2026-04-05",
-"cropId": 11,
-"soilTypeId": 4,
-"latitude": 41.9400,
-"longitude": 21.5000,
-"locationName": "Bitola",
-"irrigationType": "SPRINKLER",
-"currentStatus": "NEEDS_ATTENTION",
-"expectedHarvestDate": "2026-09-20",
-"notes": "Changed irrigation method"
+  "area": 3.0,
+  "plantingDate": "2024-03-15",
+  "cropId": 3,
+  "soilTypeId": 2,
+  "latitude": 41.0082,
+  "longitude": 28.9784,
+  "locationName": "North Field",
+  "irrigationType": "DRIP",
+  "currentStatus": "GROWING",
+  "expectedHarvestDate": "2024-07-15",
+  "notes": "Updated after irrigation check"
 }
-Response
-Status: 200 OK
+```
 
-json
+**Field Validation:**
+
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| area | Double | Yes | Must be positive |
+| plantingDate | LocalDate | Yes | Format: `YYYY-MM-DD` |
+| cropId | Long | Yes | Must be positive, must exist |
+| soilTypeId | Long | Yes | Must be positive, must exist |
+| latitude | Double | No | Between -90.0 and 90.0 |
+| longitude | Double | No | Between -180.0 and 180.0 |
+| locationName | String | No | Max 255 characters |
+| irrigationType | IrrigationType | No | Enum value |
+| currentStatus | CurrentStatus | Yes | Enum value |
+| expectedHarvestDate | LocalDate | No | Format: `YYYY-MM-DD` |
+| notes | String | No | Max 1000 characters |
+
+### Response
+
+**Status:** `200 OK` — Returns the updated `PlantingInformationResponse`
+
+### Error Responses
+
+**Status:** `404 Not Found` — Entry not found or does not belong to the authenticated user
+
+```json
 {
-"plantingId": 1,
-"area": 3.0,
-"plantingDate": "2026-04-05",
-"userId": 1,
-"cropId": 11,
-"cropName": "Wheat",
-"soilTypeId": 4,
-"soilTypeName": "Clay",
-"latitude": 41.9400,
-"longitude": 21.5000,
-"locationName": "Bitola",
-"irrigationType": "SPRINKLER",
-"currentStatus": "NEEDS_ATTENTION",
-"expectedHarvestDate": "2026-09-20",
-"notes": "Changed irrigation method"
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Entry not found with ID: 1",
+  "path": "/entries/1"
 }
-Error Responses
+```
 
-404 Not Found — Entry not found or user does not have permission
+**Status:** `401 Unauthorized` — Missing or invalid token
 
-400 Bad Request — Validation error or crop/soil type not found
+---
 
-DELETE /entries/{id}
-Deletes a planting entry.
+## DELETE `/entries/{id}`
 
-Request
-Headers:
+Deletes a planting entry. The entry must belong to the authenticated user.
 
-Code
+### Request
+
+**Headers:**
+```
 Authorization: Bearer <token>
-Path Parameter:
+```
 
-id (Long) — Planting entry ID
+**Path Parameters:**
 
-Response
-Status: 204 No Content
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | Long | The ID of the planting entry to delete |
 
-Error Responses
+### Response
 
-404 Not Found — Entry not found or user does not have permission
+**Status:** `204 No Content`
+
+### Error Responses
+
+**Status:** `404 Not Found` — Entry not found or does not belong to the authenticated user
+
+```json
+{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Entry not found with ID: 1",
+  "path": "/entries/1"
+}
+```
+
+**Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+Tokens are validated on every protected request via the `JwtFilter`. If a token is expired, has an invalid signature, or is otherwise malformed, the server returns a `401 Unauthorized` response with a descriptive error message. All entry operations are scoped to the authenticated user — attempting to access or modify another user's entry returns a `404 Not Found`.

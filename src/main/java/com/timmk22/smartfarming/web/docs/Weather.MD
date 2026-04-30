@@ -34,6 +34,7 @@ Fetches a 7-day weather forecast for the given coordinates from the Open-Meteo A
 GET /weather?latitude=41.9981&longitude=21.4254&timezone=Europe/Skopje
 ```
 
+
 ### Response
 
 **Status:** `200 OK`
@@ -45,7 +46,6 @@ GET /weather?latitude=41.9981&longitude=21.4254&timezone=Europe/Skopje
   "longitude": 21.4254,
   "timezone": "Europe/Skopje",
   "forecastDays": 7,
-
   "time": "2025-01-01T00:00:00",
   "temp2mMax": 18.5,
   "temp2mMin": 7.2,
@@ -55,17 +55,33 @@ GET /weather?latitude=41.9981&longitude=21.4254&timezone=Europe/Skopje
   "rainSum": 0.0,
   "showersSum": 0.0,
   "snowfallSum": 0.0,
-
-  "hourlyTime": "2025-01-01T00:00:00",
-  "temp2m": 9.1,
-  "relatHum2m": 72.0,
-  "cloudCover": 45.0,
-  "windSpeed10m": 11.3,
-  "soilMoisture9To27cm": 0.31,
-  "directNormIrradiance": 0.0,
-  "vapourPressureDeficit": 0.42,
-  "evapotranspiration": 0.05
+  "hourlyForecasts": [
+    {
+      "time": "2025-01-01T00:00:00",
+      "temp2m": 9.1,
+      "relatHum2m": 72.0,
+      "cloudCover": 45.0,
+      "windSpeed10m": 11.3,
+      "soilMoisture9To27cm": 0.31,
+      "directNormIrradiance": 0.0,
+      "vapourPressureDeficit": 0.42,
+      "evapotranspiration": 0.05
+    },
+    {
+      "time": "2025-01-01T01:00:00",
+      "temp2m": 8.9,
+      "relatHum2m": 74.0,
+      "cloudCover": 50.0,
+      "windSpeed10m": 10.8,
+      "soilMoisture9To27cm": 0.32,
+      "directNormIrradiance": 0.0,
+      "vapourPressureDeficit": 0.40,
+      "evapotranspiration": 0.04
+    }
+    // ... up to 24 hourly entries per day
+  ]
 }
+
 ```
 
 **Response Fields:**
@@ -80,7 +96,7 @@ GET /weather?latitude=41.9981&longitude=21.4254&timezone=Europe/Skopje
 | timezone | String | Timezone used for the forecast |
 | forecastDays | Integer | Number of forecast days (always `7`) |
 
-**Daily Fields (index 0 = today):**
+**Daily Fields:**
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -96,17 +112,17 @@ GET /weather?latitude=41.9981&longitude=21.4254&timezone=Europe/Skopje
 
 **Hourly Fields (index 0 = first hour of today):**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| hourlyTime | LocalDateTime | Timestamp of the hourly reading |
-| temp2m | BigDecimal | Temperature at 2m height (°C) |
-| relatHum2m | BigDecimal | Relative humidity at 2m height (%) |
-| cloudCover | BigDecimal | Cloud cover (%) |
-| windSpeed10m | BigDecimal | Wind speed at 10m height (km/h) |
-| soilMoisture9To27cm | BigDecimal | Soil moisture at 9–27cm depth (m³/m³) |
-| directNormIrradiance | BigDecimal | Direct normal irradiance (W/m²) |
+| Field                 | Type | Description |
+|-----------------------|------|-------------|
+| time                  | LocalDateTime | Timestamp of the hourly reading |
+| temp2m                | BigDecimal | Temperature at 2m height (°C) |
+| relatHum2m            | BigDecimal | Relative humidity at 2m height (%) |
+| cloudCover            | BigDecimal | Cloud cover (%) |
+| windSpeed10m          | BigDecimal | Wind speed at 10m height (km/h) |
+| soilMoisture9To27cm   | BigDecimal | Soil moisture at 9–27cm depth (m³/m³) |
+| directNormIrradiance  | BigDecimal | Direct normal irradiance (W/m²) |
 | vapourPressureDeficit | BigDecimal | Vapour pressure deficit (kPa) |
-| evapotranspiration | BigDecimal | Reference evapotranspiration ET₀ (mm) |
+| evapotranspiration    | BigDecimal | Reference evapotranspiration ET₀ (mm) |
 
 
 ---
