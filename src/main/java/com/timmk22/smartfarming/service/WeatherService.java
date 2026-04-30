@@ -1,6 +1,7 @@
 package com.timmk22.smartfarming.service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.timmk22.smartfarming.dto.response.WeatherResponse;
 
@@ -16,5 +17,5 @@ public interface WeatherService {
      * @throws IllegalArgumentException if coordinates are out of range
      * @throws RuntimeException         if the Open-Meteo API call fails
      */
-    WeatherResponse getWeather(BigDecimal latitude, BigDecimal longitude, String timezone);
+    List<WeatherResponse> getWeather(BigDecimal latitude, BigDecimal longitude, String timezone);
 }

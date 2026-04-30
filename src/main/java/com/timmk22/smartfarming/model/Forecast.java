@@ -1,19 +1,14 @@
 package com.timmk22.smartfarming.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "forecast")
@@ -52,38 +47,10 @@ public class Forecast {
     private BigDecimal temp2mMin;
 
     private LocalDateTime sunrise;
-
     private LocalDateTime sunset;
 
     @Column(name = "perc_prob_max", precision = 5, scale = 2)
     private BigDecimal percProbMax;
-
-    @Column(name = "soil_moisture_9_to_27cm", precision = 6, scale = 2)
-    private BigDecimal soilMoisture9To27cm;
-
-    @Column(name = "cloud_cover", precision = 5, scale = 2)
-    private BigDecimal cloudCover;
-
-    @Column(name = "direct_norm_irradiance", precision = 8, scale = 2)
-    private BigDecimal directNormIrradiance;
-
-    @Column(name = "wind_speed_10m", precision = 6, scale = 2)
-    private BigDecimal windSpeed10m;
-
-    @Column(name = "vapour_pressure_deficit", precision = 6, scale = 2)
-    private BigDecimal vapourPressureDeficit;
-
-    @Column(name = "evapotranspiration", precision = 6, scale = 2)
-    private BigDecimal evapotranspiration;
-
-    @Column(name = "relat_hum_2m", precision = 5, scale = 2)
-    private BigDecimal relatHum2m;
-
-    @Column(name = "temp_2m", precision = 5, scale = 2)
-    private BigDecimal temp2m;
-
-    @Column(name = "hourly_time")
-    private LocalDateTime hourlyTime;
 
     @Column(name = "rain_sum", precision = 6, scale = 2)
     private BigDecimal rainSum;
@@ -94,5 +61,6 @@ public class Forecast {
     @Column(name = "snowfall_sum", precision = 6, scale = 2)
     private BigDecimal snowfallSum;
 
+    @OneToMany(mappedBy = "forecast", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HourlyForecast> hourlyForecasts = new ArrayList<>();
 }
-
