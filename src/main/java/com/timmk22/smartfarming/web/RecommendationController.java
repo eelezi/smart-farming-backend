@@ -18,13 +18,13 @@ public class RecommendationController {
 
     // If needed, maybe put this method inside "PlantingInformationController"
     @PostMapping("/generate/{plantingId}")
-    public ResponseEntity<?> generateRecommendation(@PathVariable Long plantingId) {
+    public ResponseEntity<?> generateRecommendation(@PathVariable Long plantingId,
+                                                    @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "false") boolean summarized) {
         try {
-            RecommendationResponse recommendation = recommendationService.generateRecommendation(plantingId);
+            RecommendationResponse recommendation = recommendationService.generateRecommendation(plantingId, summarized);
             return ResponseEntity.ok(recommendation);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
-
