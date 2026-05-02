@@ -46,7 +46,7 @@ public class WeatherController {
             if (timezone == null || timezone.isBlank()) {
                 timezone = "UTC";
             }
-            WeatherResponse response = weatherService.getWeather(latitude, longitude, timezone,  recommendation_id);
+            List<WeatherResponse> response = weatherService.getWeather(latitude, longitude, timezone,  recommendation_id);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

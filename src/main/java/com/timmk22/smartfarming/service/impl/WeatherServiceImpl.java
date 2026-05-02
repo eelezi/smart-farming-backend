@@ -2,8 +2,10 @@ package com.timmk22.smartfarming.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timmk22.smartfarming.dto.response.HourlyForecastResponse;
 import com.timmk22.smartfarming.dto.response.WeatherResponse;
 import com.timmk22.smartfarming.model.Forecast;
+import com.timmk22.smartfarming.model.HourlyForecast;
 import com.timmk22.smartfarming.model.Recommendation;
 import com.timmk22.smartfarming.repository.ForecastRepository;
 import com.timmk22.smartfarming.repository.RecommendationRepository;
@@ -14,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class WeatherServiceImpl implements WeatherService {
@@ -48,22 +53,23 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
-    public WeatherResponse getWeather(BigDecimal latitude, BigDecimal longitude, String timezone, Long recommendation_id) {
+    public List<WeatherResponse> getWeather(BigDecimal latitude, BigDecimal longitude, String timezone, Long recommendation_id) {
         Recommendation recommendation = recommendationRepository.findById(recommendation_id)
                 .orElseThrow(() -> new RuntimeException("Recommendation not found for id: " + recommendation_id));
-
         validateCoordinates(latitude, longitude);
 
         String responseBody = fetchFromOpenMeteo(latitude, longitude, timezone);
 
-        Forecast forecast = parseAndBuildForecast(responseBody, latitude, longitude, timezone);
+        List<Forecast> forecasts = parseAndBuildForecasts(responseBody, latitude, longitude, timezone);
 
-        forecast.setRecommendation(recommendation);
-        Forecast saved = forecastRepository.save(forecast);
-        recommendation.getForecasts().add(saved);
-        recommendationRepository.save(recommendation);
+        forecasts.forEach(forecast -> {
+            forecast.setRecommendation(recommendation);
+            Forecast saved = forecastRepository.save(forecast);
+            recommendation.getForecasts().add(saved);
+            recommendationRepository.save(recommendation);
+        });
 
-        return convertToResponse(saved);
+        return forecasts.stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     private void validateCoordinates(BigDecimal latitude, BigDecimal longitude) {
@@ -96,10 +102,10 @@ public class WeatherServiceImpl implements WeatherService {
         }
     }
 
-    private Forecast parseAndBuildForecast(String responseBody,
-                                           BigDecimal latitude,
-                                           BigDecimal longitude,
-                                           String timezone) {
+    private List<Forecast> parseAndBuildForecasts(String responseBody,
+                                                  BigDecimal latitude,
+                                                  BigDecimal longitude,
+                                                  String timezone) {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
 
@@ -111,39 +117,58 @@ public class WeatherServiceImpl implements WeatherService {
             JsonNode daily = root.path("daily");
             JsonNode hourly = root.path("hourly");
 
-            Forecast forecast = new Forecast();
-            forecast.setLatitude(latitude);
-            forecast.setLongitude(longitude);
+            int days = daily.path("time").size();
+            int hours = hourly.path("time").size();
 
-            forecast.setTimezone(timezone);
-            forecast.setForecastDays(7);
+            List<Forecast> forecasts = new ArrayList<>();
 
-            forecast.setTime(parseDateTime(daily, "time", 0, true));
-            forecast.setTemp2mMax(getDecimal(daily, "temperature_2m_max", 0));
-            forecast.setTemp2mMin(getDecimal(daily, "temperature_2m_min", 0));
-            forecast.setSunrise(parseDateTime(daily, "sunrise", 0, true));
-            forecast.setSunset(parseDateTime(daily, "sunset", 0, true));
-            forecast.setPercProbMax(getDecimal(daily, "precipitation_probability_max", 0));
-            forecast.setRainSum(getDecimal(daily, "rain_sum", 0));
-            forecast.setShowersSum(getDecimal(daily, "showers_sum", 0));
-            forecast.setSnowfallSum(getDecimal(daily, "snowfall_sum", 0));
+            for (int i = 0; i < days; i++) {
+                Forecast forecast = new Forecast();
+                forecast.setLatitude(latitude);
+                forecast.setLongitude(longitude);
+                forecast.setTimezone(timezone);
+                forecast.setForecastDays(days);
 
-            forecast.setHourlyTime(parseDateTime(hourly, "time", 0, false));
-            forecast.setTemp2m(getDecimal(hourly, "temperature_2m", 0));
-            forecast.setRelatHum2m(getDecimal(hourly, "relative_humidity_2m", 0));
-            forecast.setCloudCover(getDecimal(hourly, "cloud_cover", 0));
-            forecast.setWindSpeed10m(getDecimal(hourly, "wind_speed_10m", 0));
-            forecast.setSoilMoisture9To27cm(getDecimal(hourly, "soil_moisture_9_to_27cm", 0));
-            forecast.setDirectNormIrradiance(getDecimal(hourly, "direct_normal_irradiance", 0));
-            forecast.setVapourPressureDeficit(getDecimal(hourly, "vapour_pressure_deficit", 0));
-            forecast.setEvapotranspiration(getDecimal(hourly, "et0_fao_evapotranspiration", 0));
+                // Daily values
+                forecast.setTime(parseDateTime(daily, "time", i, true));
+                forecast.setTemp2mMax(getDecimal(daily, "temperature_2m_max", i));
+                forecast.setTemp2mMin(getDecimal(daily, "temperature_2m_min", i));
+                forecast.setSunrise(parseDateTime(daily, "sunrise", i, true));
+                forecast.setSunset(parseDateTime(daily, "sunset", i, true));
+                forecast.setPercProbMax(getDecimal(daily, "precipitation_probability_max", i));
+                forecast.setRainSum(getDecimal(daily, "rain_sum", i));
+                forecast.setShowersSum(getDecimal(daily, "showers_sum", i));
+                forecast.setSnowfallSum(getDecimal(daily, "snowfall_sum", i));
 
-            return forecast;
+                // Hourly values for this day
+                List<HourlyForecast> hourlyForecasts = new ArrayList<>();
+                for (int h = i * 24; h < (i + 1) * 24 && h < hours; h++) {
+                    HourlyForecast hf = new HourlyForecast();
+                    hf.setForecast(forecast);
+                    hf.setTime(parseDateTime(hourly, "time", h, false));
+                    hf.setTemp2m(getDecimal(hourly, "temperature_2m", h));
+                    hf.setRelatHum2m(getDecimal(hourly, "relative_humidity_2m", h));
+                    hf.setCloudCover(getDecimal(hourly, "cloud_cover", h));
+                    hf.setWindSpeed10m(getDecimal(hourly, "wind_speed_10m", h));
+                    hf.setSoilMoisture9To27cm(getDecimal(hourly, "soil_moisture_9_to_27cm", h));
+                    hf.setDirectNormIrradiance(getDecimal(hourly, "direct_normal_irradiance", h));
+                    hf.setVapourPressureDeficit(getDecimal(hourly, "vapour_pressure_deficit", h));
+                    hf.setEvapotranspiration(getDecimal(hourly, "et0_fao_evapotranspiration", h));
+                    hourlyForecasts.add(hf);
+                }
+
+                forecast.setHourlyForecasts(hourlyForecasts);
+                forecasts.add(forecast);
+            }
+
+            return forecasts;
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse Open-Meteo response: " + e.getMessage(), e);
         }
     }
+
+
 
     private BigDecimal getDecimal(JsonNode parent, String field, int index) {
         JsonNode array = parent.path(field);
@@ -172,7 +197,6 @@ public class WeatherServiceImpl implements WeatherService {
 
     private WeatherResponse convertToResponse(Forecast f) {
         WeatherResponse r = new WeatherResponse();
-
         r.setForecastId(f.getForecastId());
         r.setLatitude(f.getLatitude());
         r.setLongitude(f.getLongitude());
@@ -187,16 +211,23 @@ public class WeatherServiceImpl implements WeatherService {
         r.setRainSum(f.getRainSum());
         r.setShowersSum(f.getShowersSum());
         r.setSnowfallSum(f.getSnowfallSum());
-        r.setHourlyTime(f.getHourlyTime());
-        r.setTemp2m(f.getTemp2m());
-        r.setRelatHum2m(f.getRelatHum2m());
-        r.setCloudCover(f.getCloudCover());
-        r.setWindSpeed10m(f.getWindSpeed10m());
-        r.setSoilMoisture9To27cm(f.getSoilMoisture9To27cm());
-        r.setDirectNormIrradiance(f.getDirectNormIrradiance());
-        r.setVapourPressureDeficit(f.getVapourPressureDeficit());
-        r.setEvapotranspiration(f.getEvapotranspiration());
 
+        List<HourlyForecastResponse> hourlyResponses = f.getHourlyForecasts().stream()
+                .map(hf -> new HourlyForecastResponse(
+                        hf.getTime(),
+                        hf.getTemp2m(),
+                        hf.getRelatHum2m(),
+                        hf.getCloudCover(),
+                        hf.getWindSpeed10m(),
+                        hf.getSoilMoisture9To27cm(),
+                        hf.getDirectNormIrradiance(),
+                        hf.getVapourPressureDeficit(),
+                        hf.getEvapotranspiration()
+                ))
+                .collect(Collectors.toList());
+
+        r.setHourlyForecasts(hourlyResponses);
         return r;
     }
+
 }
