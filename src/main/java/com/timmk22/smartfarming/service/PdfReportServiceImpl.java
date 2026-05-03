@@ -127,10 +127,10 @@ public class PdfReportServiceImpl implements PdfReportService {
             );
 
             writer.writeText(row, PDType1Font.COURIER, 9.5f, Color.BLACK);
-            writer.moveY(7.5f);
+            writer.moveY(12.5f); // Increased line height for table rows
         }
 
-        writer.moveY(12f);
+        writer.moveY(16f);
     }
 
     private void renderAiSummary(LayoutWriter writer, GeneratePdfRequest request) throws IOException {
@@ -138,8 +138,8 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(10f);
 
         String summary = healthSummaryService.generateSummary(request);
-        writer.writeWrappedText(summary, PDType1Font.HELVETICA, BODY_FONT_SIZE, Color.BLACK, 14f);
-        writer.moveY(6f);
+        writer.writeWrappedText(summary, PDType1Font.HELVETICA, BODY_FONT_SIZE, Color.BLACK, 18f); // Increased line height for wrapped text
+        writer.moveY(12f);
     }
 
     private void renderFooter(LayoutWriter writer) throws IOException {
@@ -228,6 +228,10 @@ public class PdfReportServiceImpl implements PdfReportService {
                 float lineSpacing
         ) throws IOException {
             for (String line : wrapText(text, font, fontSize, usableWidth())) {
+                if (line.isEmpty()) {
+                    moveY(lineSpacing);
+                    continue;
+                }
                 writeText(line, font, fontSize, color);
                 moveY(lineSpacing);
             }
@@ -235,23 +239,31 @@ public class PdfReportServiceImpl implements PdfReportService {
 
         private List<String> wrapText(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
             List<String> lines = new ArrayList<>();
-            String[] words = text.replace("\n", " ").split("\\s+");
-            StringBuilder currentLine = new StringBuilder();
+            String[] paragraphs = text.split("\n");
 
-            for (String word : words) {
-                String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
-                float candidateWidth = font.getStringWidth(candidate) / 1000f * fontSize;
-
-                if (candidateWidth > maxWidth && !currentLine.isEmpty()) {
-                    lines.add(currentLine.toString());
-                    currentLine = new StringBuilder(word);
-                } else {
-                    currentLine = new StringBuilder(candidate);
+            for (String paragraph : paragraphs) {
+                if (paragraph.trim().isEmpty()) {
+                    lines.add("");
+                    continue;
                 }
-            }
+                String[] words = paragraph.trim().split("\\s+");
+                StringBuilder currentLine = new StringBuilder();
 
-            if (!currentLine.isEmpty()) {
-                lines.add(currentLine.toString());
+                for (String word : words) {
+                    String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
+                    float candidateWidth = font.getStringWidth(candidate) / 1000f * fontSize;
+
+                    if (candidateWidth > maxWidth && !currentLine.isEmpty()) {
+                        lines.add(currentLine.toString());
+                        currentLine = new StringBuilder(word);
+                    } else {
+                        currentLine = new StringBuilder(candidate);
+                    }
+                }
+
+                if (!currentLine.isEmpty()) {
+                    lines.add(currentLine.toString());
+                }
             }
 
             return lines;
