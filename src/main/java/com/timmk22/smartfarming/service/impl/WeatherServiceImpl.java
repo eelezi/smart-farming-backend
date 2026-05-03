@@ -53,30 +53,23 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
-    public List<WeatherResponse> getWeather(BigDecimal latitude, BigDecimal longitude, String timezone) {
+    public List<WeatherResponse> getWeather(BigDecimal latitude, BigDecimal longitude, String timezone, Long recommendation_id) {
+        Recommendation recommendation = recommendationRepository.findById(recommendation_id)
+                .orElseThrow(() -> new RuntimeException("Recommendation not found for id: " + recommendation_id));
         validateCoordinates(latitude, longitude);
 
         String responseBody = fetchFromOpenMeteo(latitude, longitude, timezone);
 
-        List<Forecast> forecast = parseAndBuildForecasts(responseBody, latitude, longitude, timezone);
+        List<Forecast> forecasts = parseAndBuildForecasts(responseBody, latitude, longitude, timezone);
 
-        // --- Commented for now to avoid null recom_id errors
-        /*
-        Recommendation recommendation = recommendationRepository
-                .findAll()
-                .stream()
-                .findFirst()
-                .orElse(null);
-
-        if (recommendation != null) {
+        forecasts.forEach(forecast -> {
             forecast.setRecommendation(recommendation);
             Forecast saved = forecastRepository.save(forecast);
-            return convertToResponse(saved);
-        }
-        */
+            recommendation.getForecasts().add(saved);
+            recommendationRepository.save(recommendation);
+        });
 
-        //Forecast saved = forecastRepository.save(forecast);
-        return forecast.stream().map(this::convertToResponse).collect(Collectors.toList());
+        return forecasts.stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     private void validateCoordinates(BigDecimal latitude, BigDecimal longitude) {
