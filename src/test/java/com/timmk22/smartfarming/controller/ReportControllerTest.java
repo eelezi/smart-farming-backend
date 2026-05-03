@@ -3,6 +3,7 @@ package com.timmk22.smartfarming.controller;
 import com.timmk22.smartfarming.dto.FarmingStatsDto;
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
 import com.timmk22.smartfarming.service.PdfReportService;
+import com.timmk22.smartfarming.web.ReportController;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 

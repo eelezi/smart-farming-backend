@@ -1,8 +1,9 @@
-package com.timmk22.smartfarming.service;
+package com.timmk22.smartfarming.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.service.HealthSummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;

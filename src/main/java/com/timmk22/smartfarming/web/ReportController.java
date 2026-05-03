@@ -1,4 +1,4 @@
-package com.timmk22.smartfarming.controller;
+package com.timmk22.smartfarming.web;
 
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
 import com.timmk22.smartfarming.service.PdfReportService;

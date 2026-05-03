@@ -1,7 +1,9 @@
-package com.timmk22.smartfarming.service;
+package com.timmk22.smartfarming.service.impl;
 
 import com.timmk22.smartfarming.dto.FarmingStatsDto;
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.service.HealthSummaryService;
+import com.timmk22.smartfarming.service.PdfReportService;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -62,7 +64,7 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(16f);
 
         writer.writeText("Farming Health Report", PDType1Font.HELVETICA_BOLD, TITLE_FONT_SIZE, Color.BLACK);
-        writer.moveY(10f);
+        writer.moveY(15f);
 
         writer.drawLine(new Color(210, 214, 220), 1f);
         writer.moveY(15f);
@@ -73,7 +75,7 @@ public class PdfReportServiceImpl implements PdfReportService {
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
         );
-        writer.moveY(6f);
+        writer.moveY(15f);
 
         writer.writeText(
                 "Report Date: " + request.getReportDate().format(DateTimeFormatter.ISO_DATE),
@@ -81,7 +83,7 @@ public class PdfReportServiceImpl implements PdfReportService {
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
         );
-        writer.moveY(6f);
+        writer.moveY(15f);
 
         writer.writeText(
                 "Prepared By: " + request.getPreparedBy(),
@@ -89,7 +91,7 @@ public class PdfReportServiceImpl implements PdfReportService {
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
         );
-        writer.moveY(18f);
+        writer.moveY(32f);
     }
 
     private void renderStatsTable(LayoutWriter writer, List<FarmingStatsDto> stats) throws IOException {

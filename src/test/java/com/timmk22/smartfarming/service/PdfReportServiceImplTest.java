@@ -2,6 +2,7 @@ package com.timmk22.smartfarming.service;
 
 import com.timmk22.smartfarming.dto.FarmingStatsDto;
 import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.service.impl.PdfReportServiceImpl;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
