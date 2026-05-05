@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/entries")
+@RequestMapping("/api/entries")
 public class PlantingInformationController {
 
     private final PlantingInformationService plantingInformationService;
