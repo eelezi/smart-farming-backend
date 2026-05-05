@@ -238,7 +238,8 @@ public class PdfReportServiceImpl implements PdfReportService {
 
         private List<String> wrapText(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
             List<String> lines = new ArrayList<>();
-            String[] paragraphs = text.split("\n");
+            String safeText = text == null ? "" : text;
+            String[] paragraphs = safeText.split("\n");
 
             for (String paragraph : paragraphs) {
                 if (paragraph.trim().isEmpty()) {
