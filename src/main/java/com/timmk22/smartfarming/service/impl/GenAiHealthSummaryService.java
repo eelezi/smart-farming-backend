@@ -2,7 +2,7 @@ package com.timmk22.smartfarming.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.model.PlantingInformation;
 import com.timmk22.smartfarming.service.HealthSummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -26,15 +26,23 @@ public class GenAiHealthSummaryService implements HealthSummaryService {
     private String healthSummaryPrompt;
 
     @Override
-    public String generateSummary(GeneratePdfRequest request) {
-        String statsJson;
-        try {
-            statsJson = objectMapper.writeValueAsString(request.getStats());
-        } catch (JsonProcessingException e) {
-            statsJson = request.getStats().toString();
+    public String generateSummary(String farmName, List<PlantingInformation> plantings) {
+        StringBuilder plantingDetails = new StringBuilder();
+        
+        // Build a detailed context from PlantingInformation records
+        for (PlantingInformation planting : plantings) {
+            plantingDetails.append("- Crop: ").append(planting.getCrop().getName());
+            plantingDetails.append(", Field: ").append(planting.getLocationName() != null ? planting.getLocationName() : "Field-" + planting.getPlantingId());
+            plantingDetails.append(", Area: ").append(planting.getArea()).append(" acres");
+            plantingDetails.append(", Status: ").append(planting.getCurrentStatus());
+            plantingDetails.append(", Irrigation: ").append(planting.getIrrigationType());
+            plantingDetails.append("\n");
         }
 
-        String userContent = healthSummaryPrompt + "\n\nFarm Name: " + request.getFarmName() + "\nStats:\n" + statsJson;
+        String userContent = healthSummaryPrompt + 
+                "\n\nFarm Name: " + farmName + 
+                "\nPlanting Information:\n" + 
+                plantingDetails.toString();
 
         UserMessage userMessage = new UserMessage(userContent);
 
@@ -47,7 +55,7 @@ public class GenAiHealthSummaryService implements HealthSummaryService {
             ChatResponse response = this.chatModel.call(prompt);
             return response.getResult().getOutput().getText().trim();
         } catch (Exception e) {
-             return "AI Summary unavailable due to an error: " + e.getMessage();
+            return "AI Summary unavailable due to an error: " + e.getMessage();
         }
     }
 }

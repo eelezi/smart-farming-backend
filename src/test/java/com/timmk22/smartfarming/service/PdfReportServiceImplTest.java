@@ -1,7 +1,11 @@
 package com.timmk22.smartfarming.service;
 
-import com.timmk22.smartfarming.dto.FarmingStatsDto;
-import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.enumeration.CurrentStatus;
+import com.timmk22.smartfarming.enumeration.IrrigationType;
+import com.timmk22.smartfarming.model.Crop;
+import com.timmk22.smartfarming.model.PlantingInformation;
+import com.timmk22.smartfarming.model.SoilType;
+import com.timmk22.smartfarming.model.User;
 import com.timmk22.smartfarming.service.impl.PdfReportServiceImpl;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -15,40 +19,81 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PdfReportServiceImplTest {
 
+    /**
+     * Test that PDF is generated correctly from PlantingInformation database records.
+     * Verifies that all fields from the database are included without computed values.
+     */
     @Test
-    void generateReportShouldIncludeReportSections() throws IOException {
-        HealthSummaryService summaryService = request -> "AI summary text for testing.";
+    void generateReportFromDatabaseShouldIncludeOnlyDatabaseFields() throws IOException {
+        HealthSummaryService summaryService = (farmName, plantings) -> "AI analysis of farm conditions.";
         PdfReportService service = new PdfReportServiceImpl(summaryService, "Test Farming Co");
 
-        GeneratePdfRequest request = new GeneratePdfRequest();
-        request.setFarmName("North Farm");
-        request.setReportDate(LocalDate.of(2026, 3, 28));
-        request.setPreparedBy("QA Engineer");
-        request.setStats(List.of(buildSampleStats()));
+        // Create PlantingInformation records
+        List<PlantingInformation> plantings = List.of(
+                buildSamplePlanting("Field-A", "Wheat", 50.0, LocalDate.of(2026, 1, 15)),
+                buildSamplePlanting("Field-B", "Corn", 35.0, LocalDate.of(2026, 2, 1))
+        );
 
-        byte[] pdf = service.generateReport(request);
+        byte[] pdf = service.generateReportFromDatabase(
+                plantings,
+                "Test Farm",
+                "2026-05-05",
+                "System User"
+        );
 
         assertThat(pdf).isNotEmpty();
 
         try (PDDocument document = PDDocument.load(pdf)) {
             String text = new PDFTextStripper().getText(document);
             assertThat(text).contains("Farming Health Report");
-            assertThat(text).contains("AI-Generated Health Summary");
-            assertThat(text).contains("AI summary text for testing.");
-            assertThat(text).contains("North Farm");
+            assertThat(text).contains("Test Farm");
+            assertThat(text).contains("System User");
+            assertThat(text).contains("Wheat");
+            assertThat(text).contains("Corn");
+            assertThat(text).contains("Field-A");
+            assertThat(text).contains("Field-B");
+            assertThat(text).contains("Planting Information");
+            // Verify no computed fields in header
+            assertThat(text).doesNotContain("Yield/Acr");
+            assertThat(text).doesNotContain("Moisture%");
+            assertThat(text).doesNotContain("Pests");
+            assertThat(text).doesNotContain("Risk");
         }
     }
 
-    private FarmingStatsDto buildSampleStats() {
-        FarmingStatsDto stats = new FarmingStatsDto();
-        stats.setFieldName("F-01");
-        stats.setCropName("Corn");
-        stats.setAcreage(12.5);
-        stats.setYieldPerAcre(6.75);
-        stats.setSoilMoisturePct(45.1);
-        stats.setPestIncidents(2);
-        stats.setDiseaseRiskScore(31.4);
-        return stats;
+    /**
+     * Build a sample PlantingInformation for testing database-driven PDF generation.
+     */
+    private PlantingInformation buildSamplePlanting(String locationName, String cropName, double area, LocalDate plantingDate) {
+        PlantingInformation planting = new PlantingInformation();
+        planting.setPlantingId(1L);
+        planting.setLocationName(locationName);
+        planting.setArea(area);
+        planting.setPlantingDate(plantingDate);
+        planting.setExpectedHarvestDate(plantingDate.plusMonths(4));
+        planting.setCurrentStatus(CurrentStatus.HEALTHY);
+        planting.setIrrigationType(IrrigationType.SPRINKLER);
+
+        // Set crop
+        Crop crop = new Crop();
+        crop.setCropId(1L);
+        crop.setName(cropName);
+        planting.setCrop(crop);
+
+        // Set soil type
+        SoilType soilType = new SoilType();
+        soilType.setSoilId(1L);
+        soilType.setName("Loamy");
+        planting.setSoilType(soilType);
+
+        // Set user
+        User user = new User();
+        user.setUserId(1L);
+        user.setName("testuser");
+        user.setEmail("test@example.com");
+        planting.setUser(user);
+
+        return planting;
     }
 }
 

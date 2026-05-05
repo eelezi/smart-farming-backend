@@ -1,7 +1,6 @@
 package com.timmk22.smartfarming.service.impl;
 
-import com.timmk22.smartfarming.dto.FarmingStatsDto;
-import com.timmk22.smartfarming.dto.GeneratePdfRequest;
+import com.timmk22.smartfarming.model.PlantingInformation;
 import com.timmk22.smartfarming.service.HealthSummaryService;
 import com.timmk22.smartfarming.service.PdfReportService;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,14 +39,14 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateReport(GeneratePdfRequest request) {
+    public byte[] generateReportFromDatabase(List<PlantingInformation> plantings, String farmName, String reportDate, String preparedBy) {
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
             LayoutWriter writer = new LayoutWriter(document);
-            renderHeader(writer, request);
-            renderStatsTable(writer, request.getStats());
-            renderAiSummary(writer, request);
+            renderHeader(writer, farmName, reportDate, preparedBy);
+            renderStatsTable(writer, plantings);
+            renderAiSummary(writer, plantings, farmName);
             renderFooter(writer);
             writer.close();
 
@@ -59,7 +57,7 @@ public class PdfReportServiceImpl implements PdfReportService {
         }
     }
 
-    private void renderHeader(LayoutWriter writer, GeneratePdfRequest request) throws IOException {
+    private void renderHeader(LayoutWriter writer, String farmName, String reportDate, String preparedBy) throws IOException {
         writer.writeText(companyName, PDType1Font.HELVETICA_BOLD, 11f, new Color(58, 76, 106));
         writer.moveY(16f);
 
@@ -70,7 +68,7 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(15f);
 
         writer.writeText(
-                "Farm: " + request.getFarmName(),
+                "Farm: " + farmName,
                 PDType1Font.HELVETICA_BOLD,
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
@@ -78,7 +76,7 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(15f);
 
         writer.writeText(
-                "Report Date: " + request.getReportDate().format(DateTimeFormatter.ISO_DATE),
+                "Report Date: " + reportDate,
                 PDType1Font.HELVETICA,
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
@@ -86,7 +84,7 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(15f);
 
         writer.writeText(
-                "Prepared By: " + request.getPreparedBy(),
+                "Prepared By: " + preparedBy,
                 PDType1Font.HELVETICA,
                 BODY_FONT_SIZE,
                 Color.DARK_GRAY
@@ -94,20 +92,19 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(32f);
     }
 
-    private void renderStatsTable(LayoutWriter writer, List<FarmingStatsDto> stats) throws IOException {
-        writer.writeText("Field Metrics", PDType1Font.HELVETICA_BOLD, SECTION_FONT_SIZE, Color.BLACK);
+    private void renderStatsTable(LayoutWriter writer, List<PlantingInformation> plantings) throws IOException {
+        writer.writeText("Planting Information", PDType1Font.HELVETICA_BOLD, SECTION_FONT_SIZE, Color.BLACK);
         writer.moveY(12f);
 
         String tableHeader = String.format(
                 Locale.US,
-                "%-14s %-10s %7s %10s %11s %8s %8s",
+                "%-14s %-10s %7s %-12s %-12s %-12s",
                 "Field",
                 "Crop",
                 "Acres",
-                "Yield/Acr",
-                "Moisture%",
-                "Pests",
-                "Risk"
+                "Status",
+                "Planting",
+                "Harvest"
         );
 
         writer.writeText(tableHeader, PDType1Font.COURIER_BOLD, 9.5f, new Color(30, 30, 30));
@@ -115,32 +112,32 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.drawLine(new Color(200, 205, 210), 0.8f);
         writer.moveY(9f);
 
-        for (FarmingStatsDto field : stats) {
+        for (PlantingInformation planting : plantings) {
             String row = String.format(
                     Locale.US,
-                    "%-14s %-10s %7.1f %10.2f %11.1f %8d %8.1f",
-                    trimToLength(field.getFieldName(), 14),
-                    trimToLength(field.getCropName(), 10),
-                    field.getAcreage(),
-                    field.getYieldPerAcre(),
-                    field.getSoilMoisturePct(),
-                    field.getPestIncidents(),
-                    field.getDiseaseRiskScore()
+                    "%-14s %-10s %7.1f %-12s %-12s %-12s",
+                    trimToLength(planting.getLocationName() != null ? planting.getLocationName() : "Field-" + planting.getPlantingId(), 14),
+                    trimToLength(planting.getCrop().getName(), 10),
+                    planting.getArea(),
+                    trimToLength(planting.getCurrentStatus().toString(), 12),
+                    planting.getPlantingDate(),
+                    planting.getExpectedHarvestDate() != null ? planting.getExpectedHarvestDate().toString() : "N/A"
             );
 
             writer.writeText(row, PDType1Font.COURIER, 9.5f, Color.BLACK);
-            writer.moveY(12.5f); // Increased line height for table rows
+            writer.moveY(12.5f);
         }
 
         writer.moveY(16f);
     }
 
-    private void renderAiSummary(LayoutWriter writer, GeneratePdfRequest request) throws IOException {
+    private void renderAiSummary(LayoutWriter writer, List<PlantingInformation> plantings, String farmName) throws IOException {
         writer.writeText("AI-Generated Health Summary", PDType1Font.HELVETICA_BOLD, SECTION_FONT_SIZE, Color.BLACK);
         writer.moveY(10f);
 
-        String summary = healthSummaryService.generateSummary(request);
-        writer.writeWrappedText(summary, PDType1Font.HELVETICA, BODY_FONT_SIZE, Color.BLACK, 18f); // Increased line height for wrapped text
+        // Create a summary request from the plantings
+        String summary = healthSummaryService.generateSummary(farmName, plantings);
+        writer.writeWrappedText(summary, PDType1Font.HELVETICA, BODY_FONT_SIZE, Color.BLACK, 18f);
         writer.moveY(12f);
     }
 
@@ -277,5 +274,5 @@ public class PdfReportServiceImpl implements PdfReportService {
             }
         }
     }
-}
 
+}
