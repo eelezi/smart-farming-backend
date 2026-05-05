@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timmk22.smartfarming.model.PlantingInformation;
 import com.timmk22.smartfarming.service.HealthSummaryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GenAiHealthSummaryService implements HealthSummaryService {
@@ -55,7 +57,8 @@ public class GenAiHealthSummaryService implements HealthSummaryService {
             ChatResponse response = this.chatModel.call(prompt);
             return response.getResult().getOutput().getText().trim();
         } catch (Exception e) {
-            return "AI Summary unavailable due to an error: " + e.getMessage();
+            log.error("Failed to generate AI health summary for farm '{}'", farmName, e);
+            return "AI health summary is currently unavailable. Please try again later.";
         }
     }
 }
