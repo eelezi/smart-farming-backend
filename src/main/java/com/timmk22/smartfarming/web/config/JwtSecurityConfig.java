@@ -47,7 +47,6 @@ public class JwtSecurityConfig {
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
-                                "/api/diseases/predict",
                                 "/api/crops",
                                 "/api/soil-types",
                                 "/swagger-ui/**",
