@@ -3,8 +3,10 @@ package com.timmk22.smartfarming.web;
 import com.timmk22.smartfarming.dto.request.CreatePlantingInformationRequest;
 import com.timmk22.smartfarming.dto.request.UpdatePlantingInformationRequest;
 import com.timmk22.smartfarming.dto.response.PlantingInformationResponse;
+import com.timmk22.smartfarming.dto.response.RecommendationResponse;
 import com.timmk22.smartfarming.model.User;
 import com.timmk22.smartfarming.service.PlantingInformationService;
+import com.timmk22.smartfarming.service.RecommendationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +16,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/entries")
-public class PlantingInformationController {
+@RequestMapping("/api/plantings")
+public class PlantingsController {
 
     private final PlantingInformationService plantingInformationService;
+    private final RecommendationService recommendationService;
 
-    public PlantingInformationController(PlantingInformationService plantingInformationService) {
+    public PlantingsController(PlantingInformationService plantingInformationService,
+                                          RecommendationService recommendationService) {
         this.plantingInformationService = plantingInformationService;
+        this.recommendationService = recommendationService;
     }
 
     @GetMapping
@@ -80,6 +85,18 @@ public class PlantingInformationController {
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/recommendation")
+    public ResponseEntity<?> generateRecommendation(
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "false") boolean summarized) {
+        try {
+            RecommendationResponse recommendation = recommendationService.generateRecommendation(id, summarized);
+            return ResponseEntity.ok(recommendation);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

@@ -2,14 +2,22 @@ package com.timmk22.smartfarming.web;
 
 import com.timmk22.smartfarming.dto.response.IdNameResponse;
 import com.timmk22.smartfarming.dto.response.PlantDiseaseDiagnosisResponse;
+import com.timmk22.smartfarming.model.PlantingInformation;
+import com.timmk22.smartfarming.model.User;
+import com.timmk22.smartfarming.repository.PlantingInformationRepository;
 import com.timmk22.smartfarming.service.CropService;
+import com.timmk22.smartfarming.service.PdfReportService;
 import com.timmk22.smartfarming.service.PlantDiseaseService;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -18,10 +26,15 @@ public class CropController {
 
     private final CropService cropService;
     private final PlantDiseaseService plantDiseaseService;
+    private final PdfReportService pdfReportService;
+    private final PlantingInformationRepository plantingInformationRepository;
 
-    public CropController(CropService cropService, PlantDiseaseService plantDiseaseService) {
+    public CropController(CropService cropService, PlantDiseaseService plantDiseaseService,
+                          PdfReportService pdfReportService, PlantingInformationRepository plantingInformationRepository) {
         this.cropService = cropService;
         this.plantDiseaseService = plantDiseaseService;
+        this.pdfReportService = pdfReportService;
+        this.plantingInformationRepository = plantingInformationRepository;
     }
 
     @GetMapping
@@ -39,6 +52,47 @@ public class CropController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/{cropId}/report", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generateReport(
+            @PathVariable Long cropId,
+            @AuthenticationPrincipal User user) {
+        try {
+            List<PlantingInformation> allPlantings = plantingInformationRepository.findByCropCropId(cropId);
+
+            List<PlantingInformation> userPlantings = allPlantings.stream()
+                    .filter(p -> p.getUser().getUserId().equals(user.getUserId()))
+                    .toList();
+
+            if (userPlantings.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            String cropName = userPlantings.get(0).getCrop().getName();
+            String reportDate = LocalDate.now().toString();
+            String preparedBy = user.getUsername() != null ? user.getUsername() : "User";
+
+            byte[] pdfBytes = pdfReportService.generateReportFromDatabase(
+                    userPlantings,
+                    cropName + " Report",
+                    reportDate,
+                    preparedBy
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(
+                    ContentDisposition.attachment()
+                            .filename("crop-" + cropName + "-report-" + reportDate + ".pdf")
+                            .build()
+            );
+
+            return ResponseEntity.ok().headers(headers).body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
