@@ -7,8 +7,10 @@ import com.timmk22.smartfarming.model.PlantingInformation;
 import com.timmk22.smartfarming.model.SoilType;
 import com.timmk22.smartfarming.model.User;
 import com.timmk22.smartfarming.repository.PlantingInformationRepository;
+import com.timmk22.smartfarming.service.CropService;
 import com.timmk22.smartfarming.service.PdfReportService;
-import com.timmk22.smartfarming.web.ReportController;
+import com.timmk22.smartfarming.service.PlantDiseaseService;
+import com.timmk22.smartfarming.web.CropController;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,10 +55,10 @@ class ReportControllerTest {
 
         when(mockRepository.findByCropCropId(100L)).thenReturn(plantings);
 
-        ReportController controller = new ReportController(pdfReportService, mockRepository);
+        CropController controller = new CropController(mock(CropService.class), mock(PlantDiseaseService.class), pdfReportService, mockRepository);
 
         // Execute
-        ResponseEntity<byte[]> response = controller.generatePdfFromCrop(100L, user);
+        ResponseEntity<byte[]> response = controller.generateReport(100L, user);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -100,10 +102,10 @@ class ReportControllerTest {
         PlantingInformation otherUserPlanting = buildPlanting(1L, otherUser, crop, "Field-A", 50.0);
         when(mockRepository.findByCropCropId(100L)).thenReturn(List.of(otherUserPlanting));
 
-        ReportController controller = new ReportController(pdfReportService, mockRepository);
+        CropController controller = new CropController(mock(CropService.class), mock(PlantDiseaseService.class), pdfReportService, mockRepository);
 
         // Execute - user tries to access crop they don't have plantings for
-        ResponseEntity<byte[]> response = controller.generatePdfFromCrop(100L, user);
+        ResponseEntity<byte[]> response = controller.generateReport(100L, user);
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
@@ -124,9 +126,9 @@ class ReportControllerTest {
 
         when(mockRepository.findByCropCropId(999L)).thenReturn(List.of());
 
-        ReportController controller = new ReportController(pdfReportService, mockRepository);
+        CropController controller = new CropController(mock(CropService.class), mock(PlantDiseaseService.class), pdfReportService, mockRepository);
 
-        ResponseEntity<byte[]> response = controller.generatePdfFromCrop(999L, user);
+        ResponseEntity<byte[]> response = controller.generateReport(999L, user);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
