@@ -8,11 +8,12 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,10 +44,15 @@ public class PdfReportServiceImpl implements PdfReportService {
         try (PDDocument document = new PDDocument();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
+            PDFont cyrillicFont = PDType0Font.load(document,
+                    getClass().getResourceAsStream("/fonts/DejaVuLGCSansMono.ttf"));
+            PDFont cyrillicFontBold = PDType0Font.load(document,
+                    getClass().getResourceAsStream("/fonts/DejaVuLGCSansMono-Bold.ttf"));
+
             LayoutWriter writer = new LayoutWriter(document);
             renderHeader(writer, farmName, reportDate, preparedBy);
-            renderStatsTable(writer, plantings);
-            renderAiSummary(writer, plantings, farmName);
+            renderStatsTable(writer, plantings, cyrillicFont, cyrillicFontBold);
+            renderAiSummary(writer, plantings, farmName, cyrillicFont);
             renderFooter(writer);
             writer.close();
 
@@ -92,7 +98,8 @@ public class PdfReportServiceImpl implements PdfReportService {
         writer.moveY(32f);
     }
 
-    private void renderStatsTable(LayoutWriter writer, List<PlantingInformation> plantings) throws IOException {
+    private void renderStatsTable(LayoutWriter writer, List<PlantingInformation> plantings,
+                                  PDFont monoFont, PDFont monoFontBold) throws IOException {
         writer.writeText("Planting Information", PDType1Font.HELVETICA_BOLD, SECTION_FONT_SIZE, Color.BLACK);
         writer.moveY(12f);
 
@@ -107,7 +114,7 @@ public class PdfReportServiceImpl implements PdfReportService {
                 "Harvest"
         );
 
-        writer.writeText(tableHeader, PDType1Font.COURIER_BOLD, 9.5f, new Color(30, 30, 30));
+        writer.writeText(tableHeader, monoFontBold, 9.5f, new Color(30, 30, 30));
         writer.moveY(7f);
         writer.drawLine(new Color(200, 205, 210), 0.8f);
         writer.moveY(9f);
@@ -124,20 +131,20 @@ public class PdfReportServiceImpl implements PdfReportService {
                     planting.getExpectedHarvestDate() != null ? planting.getExpectedHarvestDate().toString() : "N/A"
             );
 
-            writer.writeText(row, PDType1Font.COURIER, 9.5f, Color.BLACK);
+            writer.writeText(row, monoFont, 9.5f, Color.BLACK);
             writer.moveY(12.5f);
         }
 
         writer.moveY(16f);
     }
 
-    private void renderAiSummary(LayoutWriter writer, List<PlantingInformation> plantings, String farmName) throws IOException {
+    private void renderAiSummary(LayoutWriter writer, List<PlantingInformation> plantings,
+                                 String farmName, PDFont cyrillicFont) throws IOException {
         writer.writeText("AI-Generated Health Summary", PDType1Font.HELVETICA_BOLD, SECTION_FONT_SIZE, Color.BLACK);
         writer.moveY(10f);
 
-        // Create a summary request from the plantings
         String summary = healthSummaryService.generateSummary(farmName, plantings);
-        writer.writeWrappedText(summary, PDType1Font.HELVETICA, BODY_FONT_SIZE, Color.BLACK, 18f);
+        writer.writeWrappedText(summary, cyrillicFont, BODY_FONT_SIZE, Color.BLACK, 18f);
         writer.moveY(12f);
     }
 
@@ -275,5 +282,4 @@ public class PdfReportServiceImpl implements PdfReportService {
             }
         }
     }
-
 }
