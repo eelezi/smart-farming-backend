@@ -1,6 +1,6 @@
 # Planting Information API Documentation
 
-Base URL: `/entries`
+Base URL: `/api/plantings`
 
 All endpoints under this controller handle creating, reading, updating, and deleting planting entries. Authentication is implemented using **JWT (JSON Web Token)** via a `Bearer` token passed in the `Authorization` header.
 
@@ -36,15 +36,16 @@ JWT-related errors return `401 Unauthorized`:
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/entries` | Get all entries for the authenticated user | Yes |
-| GET | `/entries/{id}` | Get a single entry by ID | Yes |
-| POST | `/entries` | Create a new planting entry | Yes |
-| PUT | `/entries/{id}` | Update an existing planting entry | Yes |
-| DELETE | `/entries/{id}` | Delete a planting entry | Yes |
+| GET | `/plantings` | Get all entries for the authenticated user | Yes |
+| GET | `/plantings/{id}` | Get a single entry by ID | Yes |
+| POST | `/plantings` | Create a new planting entry | Yes |
+| PUT | `/plantings/{id}` | Update an existing planting entry | Yes |
+| DELETE | `/plantings/{id}` | Delete a planting entry | Yes |
+| POST | `/plantings/{id}/recommendation` | Generate an AI recommendation for a planting entry | Yes |
 
 ---
 
-## GET `/entries`
+## GET `/plantings`
 
 Returns all planting entries belonging to the authenticated user.
 
@@ -98,7 +99,7 @@ Authorization: Bearer <token>
 
 ---
 
-## GET `/entries/{id}`
+## GET `/plantings/{id}`
 
 Returns a single planting entry by its ID. The entry must belong to the authenticated user.
 
@@ -156,7 +157,7 @@ Authorization: Bearer <token>
 
 ---
 
-## POST `/entries`
+## POST `/plantings`
 
 Creates a new planting entry for the authenticated user.
 
@@ -243,7 +244,7 @@ Authorization: Bearer <token>
 
 ---
 
-## PUT `/entries/{id}`
+## PUT `/plantings/{id}`
 
 Updates an existing planting entry. The entry must belong to the authenticated user.
 
@@ -316,7 +317,7 @@ Authorization: Bearer <token>
 
 ---
 
-## DELETE `/entries/{id}`
+## DELETE `/plantings/{id}`
 
 Deletes a planting entry. The entry must belong to the authenticated user.
 
@@ -354,4 +355,57 @@ Authorization: Bearer <token>
 
 ---
 
-Tokens are validated on every protected request via the `JwtFilter`. If a token is expired, has an invalid signature, or is otherwise malformed, the server returns a `401 Unauthorized` response with a descriptive error message. All entry operations are scoped to the authenticated user — attempting to access or modify another user's entry returns a `404 Not Found`.
+## POST `/plantings/{id}/recommendation`
+
+Generates an AI-powered agronomic recommendation for the specified planting entry. Optionally returns a condensed summary instead of the full recommendation.
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | Long | Yes | The ID of the planting entry to generate a recommendation for |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| summarized | Boolean | No | `false` | When `true`, returns a condensed version of the recommendation |
+
+### Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "recommendationId": 12,
+  "recommendationText": "Based on current soil type and irrigation method, consider increasing watering frequency during the next 2 weeks due to expected dry conditions. Monitor for signs of nutrient deficiency.",
+  "createdAt": "2024-05-10T14:32:00",
+  "plantingId": 1
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| recommendationId | Long | Unique identifier of the generated recommendation |
+| recommendationText | String | AI-generated recommendation text (full or summarized depending on the query param) |
+| createdAt | LocalDateTime | Timestamp when the recommendation was generated (format: `YYYY-MM-DDTHH:mm:ss`) |
+| plantingId | Long | The ID of the planting entry this recommendation belongs to |
+
+### Error Responses
+
+**Status:** `400 Bad Request` — Planting entry not found or recommendation generation failed
+
+**Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+Tokens are validated on every protected request via the `JwtFilter`. If a token is expired, has an invalid signature, or is otherwise malformed, the server returns a `401 Unauthorized` response with a descriptive error message. All entry operations are scoped to the authenticated user and attempting to access or modify another user's entry returns a `404 Not Found`.

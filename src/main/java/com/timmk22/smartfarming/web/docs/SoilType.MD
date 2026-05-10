@@ -46,7 +46,7 @@ Authorization: Bearer <token>
 
 ### Error Responses
 
-**Status:** `401 Unauthorized` — Missing or invalid token
+**Status:** `401 Unauthorized` — Invalid token
 
 ```json
 {

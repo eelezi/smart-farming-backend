@@ -2,7 +2,7 @@
 
 Base URL: `/api/crops`
 
-This controller exposes crop reference data used to populate dropdowns in the frontend. It also provides plant disease detection functionality.
+This controller exposes crop reference data used to populate dropdowns in the frontend. It also provides plant disease detection functionality and PDF report generation.
 
 ---
 
@@ -10,8 +10,9 @@ This controller exposes crop reference data used to populate dropdowns in the fr
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/api/crops` | Get all crops as id/name pairs | Yes |
-| POST | `/api/crops/diagnosis` | Analyze plant image for disease detection | Yes |
+| GET | `/api/crops` | Get all crops as id/name pairs | No             |
+| POST | `/api/crops/diagnosis` | Analyze plant image for disease detection | Yes           |
+| GET | `/api/crops/{cropId}/report` | Generate a PDF report for a specific crop | Yes           |
 
 ---
 
@@ -120,7 +121,7 @@ Content-Type: multipart/form-data
 }
 ```
 
-**Status:** `401 Unauthorized` — Missing or invalid token
+**Status:** `401 Unauthorized` — Invalid token
 
 ```json
 {
@@ -141,3 +142,55 @@ Content-Type: multipart/form-data
   "path": "/api/crops/diagnosis"
 }
 ```
+
+---
+
+## GET `/api/crops/{cropId}/report`
+
+Generates and downloads a PDF report for the authenticated user's planting data for the specified crop.
+
+> **Note:** Only planting records belonging to the authenticated user are included in the report. If the user has no planting records for the given crop, a `404` is returned.
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| cropId | Long | Yes | The ID of the crop to generate the report for |
+
+### Response
+
+**Status:** `200 OK`
+
+Returns the PDF file as a binary download.
+
+**Headers:**
+```
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="crop-{cropName}-report-{date}.pdf"
+```
+
+**Body:** Binary PDF content.
+
+### Error Responses
+
+**Status:** `401 Unauthorized` — Invalid token
+
+```json
+{
+  "status": 401,
+  "error": "Unauthorized",
+  "message": "The token is invalid.",
+  "path": "/api/crops/{cropId}/report"
+}
+```
+
+**Status:** `404 Not Found` — No planting records found for this user and crop
+
+**Status:** `500 Internal Server Error` — Unexpected error during report generation
