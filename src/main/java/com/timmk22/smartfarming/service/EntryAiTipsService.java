@@ -12,9 +12,9 @@ public interface EntryAiTipsService {
      *
      * @param entryId the ID of the planting entry
      * @param userId  the user ID (for ownership verification)
-     * @return AI-generated tips and recommendations
+     * @return AI-generated tips and recommendations, or a fallback response if the AI service
+     *         is unavailable or fails
      * @throws IllegalArgumentException if entry not found or user doesn't own it
-     * @throws RuntimeException if AI service is unavailable or fails
      */
     EntryAiTipsResponse generateAiTips(Long entryId, Long userId);
 }
