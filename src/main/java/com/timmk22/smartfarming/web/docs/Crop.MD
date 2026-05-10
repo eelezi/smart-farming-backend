@@ -10,9 +10,9 @@ This controller exposes crop reference data used to populate dropdowns in the fr
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/api/crops` | Get all crops as id/name pairs | Yes |
-| POST | `/api/crops/diagnosis` | Analyze plant image for disease detection | Yes |
-| GET | `/api/crops/{cropId}/report` | Generate a PDF report for a specific crop | Yes |
+| GET | `/api/crops` | Get all crops as id/name pairs | No             |
+| POST | `/api/crops/diagnosis` | Analyze plant image for disease detection | Yes           |
+| GET | `/api/crops/{cropId}/report` | Generate a PDF report for a specific crop | Yes           |
 
 ---
 
@@ -121,7 +121,7 @@ Content-Type: multipart/form-data
 }
 ```
 
-**Status:** `401 Unauthorized` — Missing or invalid token
+**Status:** `401 Unauthorized` — Invalid token
 
 ```json
 {
@@ -180,7 +180,7 @@ Content-Disposition: attachment; filename="crop-{cropName}-report-{date}.pdf"
 
 ### Error Responses
 
-**Status:** `401 Unauthorized` — Missing or invalid token
+**Status:** `401 Unauthorized` — Invalid token
 
 ```json
 {
@@ -193,22 +193,4 @@ Content-Disposition: attachment; filename="crop-{cropName}-report-{date}.pdf"
 
 **Status:** `404 Not Found` — No planting records found for this user and crop
 
-```json
-{
-  "status": 404,
-  "error": "Not Found",
-  "message": "No planting records found for the specified crop.",
-  "path": "/api/crops/{cropId}/report"
-}
-```
-
 **Status:** `500 Internal Server Error` — Unexpected error during report generation
-
-```json
-{
-  "status": 500,
-  "error": "Internal Server Error",
-  "message": "An unexpected error occurred while generating the report.",
-  "path": "/api/crops/{cropId}/report"
-}
-```
