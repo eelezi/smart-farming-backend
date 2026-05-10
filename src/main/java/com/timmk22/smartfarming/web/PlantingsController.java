@@ -2,9 +2,11 @@ package com.timmk22.smartfarming.web;
 
 import com.timmk22.smartfarming.dto.request.CreatePlantingInformationRequest;
 import com.timmk22.smartfarming.dto.request.UpdatePlantingInformationRequest;
+import com.timmk22.smartfarming.dto.response.EntryAiTipsResponse;
 import com.timmk22.smartfarming.dto.response.PlantingInformationResponse;
 import com.timmk22.smartfarming.dto.response.RecommendationResponse;
 import com.timmk22.smartfarming.model.User;
+import com.timmk22.smartfarming.service.EntryAiTipsService;
 import com.timmk22.smartfarming.service.PlantingInformationService;
 import com.timmk22.smartfarming.service.RecommendationService;
 import jakarta.validation.Valid;
@@ -14,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/plantings")
@@ -21,11 +24,14 @@ public class PlantingsController {
 
     private final PlantingInformationService plantingInformationService;
     private final RecommendationService recommendationService;
+    private final EntryAiTipsService entryAiTipsService;
 
     public PlantingsController(PlantingInformationService plantingInformationService,
-                                          RecommendationService recommendationService) {
+                               RecommendationService recommendationService,
+                               EntryAiTipsService entryAiTipsService) {
         this.plantingInformationService = plantingInformationService;
         this.recommendationService = recommendationService;
+        this.entryAiTipsService = entryAiTipsService;
     }
 
     @GetMapping
@@ -97,6 +103,23 @@ public class PlantingsController {
             return ResponseEntity.ok(recommendation);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/ai-tips")
+    public ResponseEntity<?> getEntryAiTips(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user) {
+        try {
+            EntryAiTipsResponse response = entryAiTipsService.generateAiTips(id, user.getUserId());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "status", HttpStatus.NOT_FOUND.value(),
+                    "error", HttpStatus.NOT_FOUND.getReasonPhrase(),
+                    "message", e.getMessage(),
+                    "path", "/api/plantings/" + id + "/ai-tips"
+            ));
         }
     }
 }

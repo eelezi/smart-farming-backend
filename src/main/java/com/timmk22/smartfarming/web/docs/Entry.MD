@@ -38,6 +38,7 @@ JWT-related errors return `401 Unauthorized`:
 |--------|----------|-------------|---------------|
 | GET | `/entries` | Get all entries for the authenticated user | Yes |
 | GET | `/entries/{id}` | Get a single entry by ID | Yes |
+| GET | `/api/plantings/{id}/ai-tips` | Generate AI-based cultivation tips for an entry | Yes |
 | POST | `/entries` | Create a new planting entry | Yes |
 | PUT | `/entries/{id}` | Update an existing planting entry | Yes |
 | DELETE | `/entries/{id}` | Delete a planting entry | Yes |
@@ -351,6 +352,81 @@ Authorization: Bearer <token>
 ```
 
 **Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+## GET `/api/plantings/{id}/ai-tips`
+
+Generates AI-powered cultivation tips and recommendations for a specific planting entry using Google's Generative AI.
+
+### Request
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Path Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| id | Long | The ID of the planting entry |
+
+### Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "summary": "Comprehensive cultivation advice has been generated.",
+  "tips": [
+    "Monitor soil moisture regularly - adjust irrigation based on current weather conditions",
+    "Check for pest and disease signs daily, especially on leaves and stems",
+    "Maintain consistent care routine for optimal crop development"
+  ],
+  "instructions": [
+    "Review weather forecasts regularly and adjust irrigation schedule accordingly",
+    "Apply recommended fertilizers based on crop development stage",
+    "Keep the planting area clear of weeds to reduce competition for nutrients"
+  ],
+  "cultivationAdvice": "For Wheat grown in Loamy soil with DRIP irrigation: Focus on consistent watering, pest monitoring, and timely nutrient management. Current status shows the crop is healthy."
+}
+```
+
+**Response Fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| summary | String | Brief summary of cultivation recommendations |
+| tips | Array[String] | List of practical tips for cultivating the crop |
+| instructions | Array[String] | List of actionable step-by-step instructions |
+| cultivationAdvice | String | Detailed advice specific to crop, soil type, irrigation, and current status |
+
+### Error Responses
+
+**Status:** `404 Not Found` — Entry not found or does not belong to the authenticated user
+
+```json
+{
+  "status": 404,
+  "error": "Not Found",
+  "message": "Entry not found with ID: 1",
+  "path": "/api/plantings/1/ai-tips"
+}
+```
+
+**Status:** `401 Unauthorized` — Missing or invalid token
+
+---
+
+## Error Handling
+
+All operations use the following error handling strategy:
+
+- **AI Service Unavailability**: When the Google GenAI service is unavailable, the endpoint gracefully falls back to providing generic but useful cultivation tips based on the entry's crop type, soil type, and irrigation method.
+- **Entry Not Found**: Attempting to access an entry that doesn't exist or doesn't belong to the authenticated user returns a `404 Not Found`.
+- **Unauthorized Access**: Attempting to access another user's entry is treated as if the entry doesn't exist (returns `404 Not Found`).
+- **Invalid Token**: JWT-related errors return `401 Unauthorized`.
 
 ---
 

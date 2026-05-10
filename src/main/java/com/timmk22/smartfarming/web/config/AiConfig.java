@@ -71,4 +71,38 @@ public class AiConfig {
                 .required(List.of("recommendationText"))
                 .build();
     }
+
+    @Bean
+    public Schema entryTipsSchema() {
+        return Schema.builder()
+                .type(Type.Known.OBJECT)
+                .properties(Map.of(
+                        "summary", Schema.builder()
+                                .type(Type.Known.STRING)
+                                .description("A brief summary of the cultivation recommendations for this planting entry.")
+                                .build(),
+                        "tips", Schema.builder()
+                                .type(Type.Known.ARRAY)
+                                .items(Schema.builder()
+                                        .type(Type.Known.STRING)
+                                        .description("Individual tips for cultivating the crop.")
+                                        .build())
+                                .description("List of practical tips for cultivating this crop.")
+                                .build(),
+                        "instructions", Schema.builder()
+                                .type(Type.Known.ARRAY)
+                                .items(Schema.builder()
+                                        .type(Type.Known.STRING)
+                                        .description("Step-by-step instructions for crop care.")
+                                        .build())
+                                .description("List of actionable instructions for crop care.")
+                                .build(),
+                        "cultivationAdvice", Schema.builder()
+                                .type(Type.Known.STRING)
+                                .description("Detailed cultivation advice specific to the crop, soil type, irrigation method, and current status.")
+                                .build()
+                ))
+                .required(List.of("summary", "tips", "instructions", "cultivationAdvice"))
+                .build();
+    }
 }
