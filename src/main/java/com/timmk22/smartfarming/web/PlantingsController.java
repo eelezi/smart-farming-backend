@@ -106,14 +106,14 @@ public class PlantingsController {
     }
 
     @GetMapping("/{id}/ai-tips")
-    public ResponseEntity<EntryAiTipsResponse> getEntryAiTips(
+    public ResponseEntity<?> getEntryAiTips(
             @PathVariable Long id,
             @AuthenticationPrincipal User user) {
         try {
             EntryAiTipsResponse response = entryAiTipsService.generateAiTips(id, user.getUserId());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
