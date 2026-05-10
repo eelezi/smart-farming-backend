@@ -38,7 +38,7 @@ JWT-related errors return `401 Unauthorized`:
 |--------|----------|-------------|---------------|
 | GET | `/entries` | Get all entries for the authenticated user | Yes |
 | GET | `/entries/{id}` | Get a single entry by ID | Yes |
-| GET | `/entries/{id}/ai-tips` | Generate AI-based cultivation tips for an entry | Yes |
+| GET | `/api/plantings/{id}/ai-tips` | Generate AI-based cultivation tips for an entry | Yes |
 | POST | `/entries` | Create a new planting entry | Yes |
 | PUT | `/entries/{id}` | Update an existing planting entry | Yes |
 | DELETE | `/entries/{id}` | Delete a planting entry | Yes |
@@ -355,7 +355,7 @@ Authorization: Bearer <token>
 
 ---
 
-## GET `/entries/{id}/ai-tips`
+## GET `/api/plantings/{id}/ai-tips`
 
 Generates AI-powered cultivation tips and recommendations for a specific planting entry using Google's Generative AI.
 
@@ -411,18 +411,7 @@ Authorization: Bearer <token>
   "status": 404,
   "error": "Not Found",
   "message": "Entry not found with ID: 1",
-  "path": "/entries/1/ai-tips"
-}
-```
-
-**Status:** `503 Service Unavailable` — AI service is temporarily unavailable (graceful fallback with generic tips provided)
-
-```json
-{
-  "status": 503,
-  "error": "Service Unavailable",
-  "message": "AI service temporarily unavailable",
-  "path": "/entries/1/ai-tips"
+  "path": "/api/plantings/1/ai-tips"
 }
 ```
 
