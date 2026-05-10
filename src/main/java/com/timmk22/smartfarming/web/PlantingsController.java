@@ -16,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/plantings")
@@ -113,7 +114,12 @@ public class PlantingsController {
             EntryAiTipsResponse response = entryAiTipsService.generateAiTips(id, user.getUserId());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "status", HttpStatus.NOT_FOUND.value(),
+                    "error", HttpStatus.NOT_FOUND.getReasonPhrase(),
+                    "message", e.getMessage(),
+                    "path", "/api/plantings/" + id + "/ai-tips"
+            ));
         }
     }
 }
