@@ -3,4 +3,8 @@ spring:
     compose:
       enabled: true
       file: docker-compose.yml
-
+  sql:
+    init:
+      mode: always
+  jpa:
+    defer-datasource-initialization: true
