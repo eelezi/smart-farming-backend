@@ -8,5 +8,8 @@ import java.util.List;
 public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
 
     List<Recommendation> findByPlantingInformationPlantingId(Long plantingId);
+
+    List<Recommendation> findByPlantingInformationPlantingIdOrderByCreatedAtDesc(Long plantingId);
 }
+
 

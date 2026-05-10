@@ -11,6 +11,7 @@ import com.timmk22.smartfarming.repository.ForecastRepository;
 import com.timmk22.smartfarming.repository.RecommendationRepository;
 import com.timmk22.smartfarming.service.WeatherService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -53,6 +54,7 @@ public class WeatherServiceImpl implements WeatherService {
     }
 
     @Override
+    @Transactional
     public List<WeatherResponse> getWeather(BigDecimal latitude, BigDecimal longitude, String timezone, Long recommendation_id) {
         Recommendation recommendation = recommendationRepository.findById(recommendation_id)
                 .orElseThrow(() -> new RuntimeException("Recommendation not found for id: " + recommendation_id));
@@ -62,14 +64,20 @@ public class WeatherServiceImpl implements WeatherService {
 
         List<Forecast> forecasts = parseAndBuildForecasts(responseBody, latitude, longitude, timezone);
 
-        forecasts.forEach(forecast -> {
+        // Save forecasts in the same transaction and attach to recommendation
+        List<Forecast> savedForecasts = new ArrayList<>();
+        for (Forecast forecast : forecasts) {
             forecast.setRecommendation(recommendation);
             Forecast saved = forecastRepository.save(forecast);
-            recommendation.getForecasts().add(saved);
-            recommendationRepository.save(recommendation);
-        });
+            savedForecasts.add(saved);
+        }
 
-        return forecasts.stream().map(this::convertToResponse).collect(Collectors.toList());
+        if (!savedForecasts.isEmpty()) {
+            recommendation.getForecasts().addAll(savedForecasts);
+            recommendationRepository.save(recommendation);
+        }
+
+        return savedForecasts.stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     private void validateCoordinates(BigDecimal latitude, BigDecimal longitude) {

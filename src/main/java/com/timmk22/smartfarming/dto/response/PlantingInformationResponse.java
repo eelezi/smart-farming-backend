@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -30,5 +32,15 @@ public class PlantingInformationResponse {
     private CurrentStatus currentStatus;
     private LocalDate expectedHarvestDate;
     private String notes;
+
+    private Long recommendationId;
+    private String recommendationText;
+    private LocalDateTime recommendationCreatedAt;
+
+    private String recommendationSummary;
+    private List<String> tips;
+    private List<String> instructions;
+    private String cultivationAdvice;
+    private LocalDateTime recommendationGeneratedAt;
 
 }

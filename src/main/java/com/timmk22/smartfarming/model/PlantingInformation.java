@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +63,15 @@ public class PlantingInformation {
     @Size(max = 1000)
     @Column(name = "notes", length = 1000)
     private String notes;
+
+    @Column(name = "recommendation_summary", length = 1000)
+    private String recommendationSummary;
+
+    @Column(name = "recommendation_json", columnDefinition = "text")
+    private String recommendationJson;
+
+    @Column(name = "recommendation_generated_at")
+    private LocalDateTime recommendationGeneratedAt;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
