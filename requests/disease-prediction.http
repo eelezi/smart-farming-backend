@@ -1,0 +1,25 @@
+### Predict disease for a sick plant
+POST http://localhost:8080/api/crops/diagnosis
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJyb2xlcyI6W10sInN1YiI6ImVkaW5AZ21haWwuY29tIiwiaWF0IjoxNzc3Nzk4ODU3LCJleHAiOjE3Nzg2NjI4NTd9.9cVsYZZZuioTc0wZlNG-2Fnm-LvhzlFpNF0QkJBLEgdNIb1Z0XH_R2tHso6ijlB3
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="image"; filename="sick-plant.jpg"
+Content-Type: image/jpeg
+
+< ./sick-plant.jpg
+--boundary--
+
+###
+
+### Predict disease for a healthy plant
+POST http://localhost:8080/api/crops/diagnosis
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJyb2xlcyI6W10sInN1YiI6ImVkaW5AZ21haWwuY29tIiwiaWF0IjoxNzc3Nzk4ODU3LCJleHAiOjE3Nzg2NjI4NTd9.9cVsYZZZuioTc0wZlNG-2Fnm-LvhzlFpNF0QkJBLEgdNIb1Z0XH_R2tHso6ijlB3
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="image"; filename="healthy-plant.jpg"
+Content-Type: image/jpeg
+
+< ./healthy-plant.jpg
+--boundary--
